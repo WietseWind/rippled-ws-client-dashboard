@@ -578,18 +578,25 @@ export default {
       try {
         Transaction = JSON.parse(this.sendTransaction.json)
       } catch (e) {
-        console.log(e)
+        this.sendTransaction.busy = false
+        this.sendTransaction.error = `${e.message}`
       }
-      let Connection = this.connectionPool.getConnection()
-      console.log('Send TX @ connection:', Connection.getState().server.uri)
-      new RippledWsClientSign(Transaction, this.sendTransaction.secret, Connection).then(TransactionSuccess => {
-        this.sendTransaction.busy = false
-        this.sendTransaction.response = TransactionSuccess
-      }).catch((SignError) => {
-        this.sendTransaction.busy = false
-        this.sendTransaction.error = `${SignError.details.type} - ${SignError.details.message}`
-        this.sendTransaction.errorDetails = SignError.details.error
-      })
+      if (Transaction) {
+        let Connection = this.connectionPool.getConnection()
+        console.log('Use RippledWsClient connection: ', Connection)
+        console.log('Send TX @ connection:', Connection.getState().server.uri)
+        new RippledWsClientSign(Transaction, this.sendTransaction.secret, Connection).then(TransactionSuccess => {
+          this.sendTransaction.busy = false
+          this.sendTransaction.response = TransactionSuccess
+        }).catch((SignSubmitError) => {
+          console.log('SignSubmitError:', SignSubmitError)
+          this.sendTransaction.busy = false
+          this.sendTransaction.error = `${SignSubmitError.details.type} - ${SignSubmitError.details.message}`
+          if (typeof SignSubmitError.details !== 'undefined' && typeof SignSubmitError.details.error !== 'undefined') {
+            this.sendTransaction.errorDetails = SignSubmitError.details.error
+          }
+        })
+      }
     },
     getTxs (loadMore) {
       this.accountTransactions.data.error = ''
