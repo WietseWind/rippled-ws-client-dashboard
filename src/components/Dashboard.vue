@@ -282,9 +282,15 @@
         <p class="alert alert-warning text-center" v-if="sendTransaction.response === null && !sendTransaction.busy && sendTransaction.error === ''">
           Awaiting execution...
         </p>
-        <p class="alert alert-danger text-center" v-if="sendTransaction.error !== ''">
-          <b>Error: </b> {{ sendTransaction.error }}
-        </p>
+        <div v-if="sendTransaction.error !== ''">
+          <div class="alert alert-danger text-center">
+            <b>Error: </b> {{ sendTransaction.error }}
+          </div>
+          <div class="error" v-if="sendTransaction.errorDetails !== {}" >
+            <h5><b>Error details:</b></h5>
+            <vue-json-pretty :data="sendTransaction.errorDetails"></vue-json-pretty>
+          </div>
+        </div>
         <p class="alert alert-success text-center" v-if="sendTransaction.response !== null && sendTransaction.response.hash">
           Transaction succeeded! <b><a :href="'https://xrpcharts.ripple.com/#/transactions/' + sendTransaction.response.hash" target="_blank">View transaction on xrpcharts.ripple.com</a></b>
         </p>
@@ -292,8 +298,8 @@
           Processing transaction...
         </p>
         <vue-json-pretty v-if="sendTransaction.response !== null && !sendTransaction.busy" :data="sendTransaction.response"></vue-json-pretty>
+        <br />&nbsp;
       </div>
-
     </div>
   </div>
 </template>
@@ -387,6 +393,7 @@ export default {
         response: null,
         secret: 'ss5Vzfhxwaom4K9qyeezCHPSCG5D7',
         error: '',
+        errorDetails: {},
         signed: {
           id: '',
           blob: ''
@@ -562,6 +569,7 @@ export default {
   methods: {
     sendTx () {
       this.sendTransaction.error = ''
+      this.sendTransaction.errorDetails = {}
       this.sendTransaction.busy = true
       this.sendTransaction.signed.id = ''
       this.sendTransaction.signed.blob = ''
@@ -572,12 +580,15 @@ export default {
       } catch (e) {
         console.log(e)
       }
-      new RippledWsClientSign(Transaction, this.sendTransaction.secret, this.connectionPool.getConnection()).then(TransactionSuccess => {
+      let Connection = this.connectionPool.getConnection()
+      console.log('Send TX @ connection:', Connection.getState().server.uri)
+      new RippledWsClientSign(Transaction, this.sendTransaction.secret, Connection).then(TransactionSuccess => {
         this.sendTransaction.busy = false
         this.sendTransaction.response = TransactionSuccess
       }).catch((SignError) => {
         this.sendTransaction.busy = false
         this.sendTransaction.error = `${SignError.details.type} - ${SignError.details.message}`
+        this.sendTransaction.errorDetails = SignError.details.error
       })
     },
     getTxs (loadMore) {
@@ -745,5 +756,6 @@ export default {
 <style lang="scss">
   div.cm-s-monokai.CodeMirror { border-radius: 4px; }
   .vjs__tree .vjs__value__string { color: #35B64C; font-weight: bold; }
+  .error .vjs__tree .vjs__value__string { color: #ca0000; font-weight: bold; }
   .vjs__value__string { word-break: break-all; }
 </style>
