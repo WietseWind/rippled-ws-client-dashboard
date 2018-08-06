@@ -262,9 +262,23 @@
       -->
 
       <div class="col-4" v-if="view === 's'">
-        <input ref="secret" type="text" placeholder="Secret (for local signing), eg. sXXX...XXX" class="form-control" v-model="sendTransaction.secret" />
-        <div class="text-danger text-center"><small><b>The secret will <u>NOT</u> be sent over the internet.</b></small></div>
-        <br />
+        <div class="input-group">
+          <input ref="secret" v-on:focus="txSecretFocussed=true" v-on:blur="txSecretFocussed=false" :type="txSecretFocussed ? 'text' : 'password'" placeholder="Secret (for local signing), eg. sXXX...XXX" class="form-control" v-model="sendTransaction.secret" />
+          <div class="input-group-append">
+            <button @click="sendTransaction.extraSecrets.push({ focussed: false, secret: '' })" class="btn btn-outline-primary" id="addSecret" type="button">
+              + <span>Multisign</span>
+            </button>
+          </div>
+        </div>
+        <div style="margin-top: 4px;" class="input-group" v-for="(s, i) in sendTransaction.extraSecrets" v-bind:key="i">
+          <input v-on:focus="s.focussed=true" v-on:blur="s.focussed=false" :type="s.focussed ? 'text' : 'password'" placeholder="Secret (for local signing), eg. sXXX...XXX" class="form-control" v-model="s.secret" />
+          <div class="input-group-append">
+            <button @click="sendTransaction.extraSecrets.splice(i, 1)" class="btn btn-outline-danger" type="button">
+              &times;
+            </button>
+          </div>
+        </div>
+        <div class="text-center" style="color: rgb(209,22,61); line-height: .9em; padding: 8px 6px 12px 6px;"><small><b>Secrets will <u>NOT</u> be sent over the internet, since transaction signing will happen locally (client side) 🎉</b></small></div>
         <codemirror v-model="sendTransaction.json" :options="rawCommand.options"></codemirror>
         <br />
         <ul class="text-muted">
@@ -340,6 +354,7 @@ export default {
       connections: [],
       addHostname: 'rippled.xrptipbot.com',
       newAccount: '',
+      txSecretFocussed: false,
       ranking: {
         data: {},
         interval: null
@@ -392,6 +407,7 @@ export default {
 }`,
         response: null,
         secret: 'ss5Vzfhxwaom4K9qyeezCHPSCG5D7',
+        extraSecrets: [],
         error: '',
         errorDetails: {},
         signed: {
@@ -551,9 +567,7 @@ export default {
     }
 
     let startWithServers = [
-      // 'ws://195.201.125.188',
       'rippled-dev.xrpayments.co',
-      'kyte.peerisland.com',
       's1.ripple.com',
       's2.ripple.com'
     ]
@@ -585,7 +599,18 @@ export default {
         let Connection = this.connectionPool.getConnection()
         console.log('Use RippledWsClient connection: ', Connection)
         console.log('Send TX @ connection:', Connection.getState().server.uri)
-        new RippledWsClientSign(Transaction, this.sendTransaction.secret, Connection).then(TransactionSuccess => {
+        let secretOrSecrets = this.sendTransaction.secret
+        if (this.sendTransaction.extraSecrets.filter(s => {
+          return s.secret.trim().match(/^s/)
+        }).length > 0) {
+          secretOrSecrets = [ secretOrSecrets ]
+          this.sendTransaction.extraSecrets.forEach(s => {
+            if (s.secret.trim().match(/^s/)) {
+              secretOrSecrets.push(s.secret.trim())
+            }
+          })
+        }
+        new RippledWsClientSign(Transaction, secretOrSecrets, Connection).then(TransactionSuccess => {
           this.sendTransaction.busy = false
           this.sendTransaction.response = TransactionSuccess
         }).catch((SignSubmitError) => {
@@ -689,6 +714,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+  #addSecret {
+    &:hover { span { opacity: 1; width: 73px; } }
+    span {
+      display: block; text-align: right; float: right;
+      width: 0px; opacity: 0; overflow: hidden;
+      -webkit-transition: 0.5s; transition: 0.5s;
+    }
+  }
   .table-tx {
     font-size: .75em;
     td {
