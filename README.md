@@ -2,7 +2,7 @@
 
 Development Dashboard for npm package: [rippled-ws-client-pool](https://github.com/WietseWind/rippled-ws-client-pool)
 
-### Demo: [https://mptuygl.dlvr.cloud/](https://mptuygl.dlvr.cloud/)
+### Demo: [https://bx5ko6n.dlvr.cloud/](https://bx5ko6n.dlvr.cloud/)
 
 ## Build Setup
 
