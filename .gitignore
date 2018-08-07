@@ -13,3 +13,4 @@ yarn-error.log*
 *.njsproj
 *.sln
 /src/components/npm-module/
+/deploy.sh

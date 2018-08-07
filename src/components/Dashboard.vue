@@ -1,11 +1,16 @@
 <template>
-  <div class="hello">
+  <div class="hello" :class="{ testnet: connectedLedgerType !== 'live' }">
+    <div class="row" v-if="connectedLedgerType !== 'live'">
+      <div class="col-12">
+        <div class="pt-0 pb-0 alert alert-danger text-center"><b><code class="text-danger">TESTNET</code></b></div>
+      </div>
+    </div>
     <div class="row">
       <div class="col-12">
-        <h1>
-          <b class="float-right text-warning">{{ ledger }}</b>
-          rippled-ws-client-pool
-        </h1>
+        <h3>
+          <b class="float-right text-warning"><small><small><span class="text-muted">Last closed ledger </span></small></small>{{ ledger }}</b>
+          <b>XRPL Dev. Dashboard</b> <small><span class="text-warning">»</span> <small>Source: </small> <code><small><a href="https://github.com/WietseWind/rippled-ws-client-pool" target="_blank">rippled-ws-client-pool</a></small></code></small>
+        </h3>
       </div>
       <div class="col-12 margin-bottom-10">
         <ul class="nav nav-tabs nav-fill">
@@ -25,12 +30,19 @@
             <span class="text-danger"><b>No servers</b></span>
           </li>
           <li class="list-group-item" v-for="server in servers" v-bind:key="server">
-            <a @click="removeServer(server)" class="text-danger float-right rm">×</a>
+            <a v-if="connectedLedgerType === 'live'" @click="removeServer(server)" class="text-danger float-right rm">×</a>
             <b><code class="text-secondary"><span v-html="serverStateIcon(server)"></span> {{ server }}</code></b>
           </li>
         </ul>
-        <br />
-        <input ref="addserver" type="text" placeholder="Add server (hostname)" class="form-control" v-on:keydown.enter="addServer" v-model="addHostname" />
+        <div v-if="connectedLedgerType === 'live'">
+          <br />
+          <input ref="addserver" type="text" placeholder="Add server (hostname)" class="form-control" v-on:keydown.enter="addServer" v-model="addHostname" />
+          <br />
+          <button @click="switchToTestnet()" class="btn btn-outline-danger pt-0 pb-0 btn-block text-center btn-xs">Switch to <b>TESTNET</b></button>
+        </div>
+        <div v-else>
+          <button @click="switchToLivenet()" class="btn btn-outline-success pt-0 pb-0 btn-block text-center btn-xs">Switch to <b>LIVENET</b></button>
+        </div>
       </div>
       <div v-for="(c) in connections" v-bind:key="c.hostname" class="col-3" v-if="view === 'c'">
         <b>{{ c.hostname }}</b>
@@ -135,11 +147,17 @@
          ************************************/
       -->
 
-      <div class="col-3" v-if="view === 't'">
+      <div class="col-3" v-if="view === 't' && connectedLedgerType === 'live'">
         <ul class="list-group list-sm list-group-flush">
           <li class="list-group-item text-center" v-if="accounts.length < 1">
             <span class="text-danger"><b>No accounts watched</b></span>
           </li>
+          <div class="alert alert-warning text-center" v-if="accounts.length > 0">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" v-model="showOnlyPayments" id="showOnlyPayments" />
+              <label for="showOnlyPayments" class="form-check-label">Show only "Payments"</label>
+            </div>
+          </div>
           <li class="list-group-item" v-for="account in accounts" v-bind:key="account">
             <a @click="removeAccount(account)" class="text-danger float-right rm">×</a>
             <b><code class="text-secondary">{{ account }}</code></b>
@@ -149,15 +167,8 @@
         <input ref="addaccount" type="text" placeholder="Add account (rXXX...)" class="form-control" v-on:keydown.enter="addAccount" v-model="newAccount" />
         <br />
         <a :class="{ 'd-block': true }" v-for="a in interestingAccounts" v-bind:key="a" v-if="accounts.indexOf(a) < 0" @click="newAccount=a;addAccount()"><small><code>{{ a }}</code></small></a>
-        <hr />
-        <div class="alert alert-warning text-center">
-          <div class="form-check">
-            <input type="checkbox" class="form-check-input" v-model="showOnlyPayments" id="showOnlyPayments" />
-            <label for="showOnlyPayments" class="form-check-label">Show only "Payments"</label>
-          </div>
-        </div>
       </div>
-      <div class="col-9" v-if="view === 't'">
+      <div :class="{ 'col-9': connectedLedgerType === 'live', 'col-12': connectedLedgerType !== 'live' }" v-if="view === 't'">
         <div v-if="filteredTransactions.length < 1" class="alert alert-primary text-center">
           No transactions (yet)
           <span v-if="showOnlyPayments">
@@ -170,7 +181,7 @@
             <tr>
               <th width="50"></th>
               <th width="100">Tx Type</th>
-              <th width="100">Tx Status</th>
+              <th width="140">Tx Status</th>
               <th>Tx Hash @ Ledger</th>
               <th width="300">Account (first responder)</th>
             </tr>
@@ -315,6 +326,17 @@
         <br />&nbsp;
       </div>
     </div>
+    <div class="row pt-0 pb-0">
+      <div class="col-12 pt-0 pb-0 text-center byWietse">
+        <div><small>
+          By <span class="text-muted"><a href="https://twitter.com/WietseWind" class="text-muted" target="_blank">@WietseWind</a></span>
+          -
+          Source: <code><a href="https://github.com/WietseWind/rippled-ws-client-pool" class="text-muted" target="_blank">rippled-ws-client-pool</a></code> (Github)
+          -
+          <code><a href="https://www.xrptipbot.com/u:WietseWind/n:twitter" class="text-muted" target="_blank">Donations 😇</a></code>
+        </small></div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -339,6 +361,17 @@ export default {
   data () {
     return {
       ledger: null,
+      connectedLedgerType: 'live',
+      initialServers: {
+        live: [
+          'rippled-dev.xrpayments.co',
+          's1.ripple.com',
+          's2.ripple.com'
+        ],
+        test: [
+          's.altnet.rippletest.net:51233'
+        ]
+      },
       connectionPool: null,
       view: 'c',
       menu: {
@@ -375,8 +408,8 @@ export default {
         'r9KG7Du7aFmABzMvDnwuvPaEoMu4Eurwok',
         'rQHYSEyxX3GKK3F6sXRvdd2NHhUqaxtC6F'
       ],
-      storeTxAmount: 5000,
-      showOnlyPayments: true,
+      storeTxAmount: 2500,
+      showOnlyPayments: false,
       txCount: 0,
       transactions: [],
       accountTransactions: {
@@ -566,19 +599,32 @@ export default {
       }
     }
 
-    let startWithServers = [
-      'rippled-dev.xrpayments.co',
-      's1.ripple.com',
-      's2.ripple.com'
-    ]
-    startWithServers.forEach((s) => {
-      this.connectionPool.addServer(s)
-    })
+    let initialServerType = document.location.hash.match(/testnet/) ? 'test' : 'live'
+    this.connectedLedgerType = initialServerType
 
-    this.interestingAccounts.forEach((s) => {
-      this.accounts.push(s)
-      this.connectionPool.subscribeAccount(s)
-    })
+    if (initialServerType === 'live') {
+      this.interestingAccounts.forEach((s) => {
+        this.accounts.push(s)
+        this.connectionPool.subscribeAccount(s)
+      })
+    } else {
+      this.connectionPool.on('added', s => {
+        let notSubscribedYet = true
+        let subscribeTxStream = () => {
+          this.showOnlyPayments = false
+          this.connectionPool.send({ command: 'subscribe', streams: [ 'transactions' ] }).then(console.log).catch(console.log)
+        }
+        this.connectionPool.on('ledger', l => {
+          // Watch all transactions
+          if (notSubscribedYet) {
+            subscribeTxStream()
+          }
+          notSubscribedYet = false
+        })
+      })
+    }
+
+    this.initialServers[initialServerType].forEach(s => { this.connectionPool.addServer(s) })
   },
   methods: {
     sendTx () {
@@ -656,6 +702,14 @@ export default {
         textClass = connection[0].state.online ? 'success' : 'danger'
       }
       return '<span class="text-' + textClass + '">⬤</span>'
+    },
+    switchToTestnet () {
+      window.location.hash = '#testnet'
+      window.location.reload()
+    },
+    switchToLivenet () {
+      window.location.hash = '#c'
+      window.location.reload()
     },
     addServer () {
       this.connectionPool.addServer(this.addHostname)
@@ -791,6 +845,16 @@ export default {
   .jsonResponse.success { padding: 0; }
 
   .txblob { white-space: normal; word-wrap: break-word; border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; background-color: #f0f0f0; }
+
+  .byWietse {
+    position: absolute; bottom: 0;
+
+    div {
+      border-top: 1px solid #ccc; margin-top: 1em; color: #ccc;
+      background-color: #fff;
+      padding-bottom: 4px;
+    }
+  }
 </style>
 
 <style lang="scss">
