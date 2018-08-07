@@ -846,13 +846,17 @@ export default {
 
   .txblob { white-space: normal; word-wrap: break-word; border: 1px solid #ccc; border-radius: 4px; padding: 4px 8px; background-color: #f0f0f0; }
 
-  .byWietse {
-    position: absolute; bottom: 0;
+  .hello {
+    margin-bottom: 30px;
 
-    div {
-      border-top: 1px solid #ccc; margin-top: 1em; color: #ccc;
-      background-color: #fff;
-      padding-bottom: 4px;
+    .byWietse {
+      position: fixed; bottom: 0;
+
+      div {
+        border-top: 1px solid #ccc; margin-top: 1em; color: #ccc;
+        background-color: #fff;
+        padding-bottom: 4px;
+      }
     }
   }
 </style>
