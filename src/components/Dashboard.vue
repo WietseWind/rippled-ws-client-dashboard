@@ -9,7 +9,7 @@
       <div class="col-12">
         <h3>
           <b class="float-right text-warning"><small><small><span class="text-muted">Last closed ledger </span></small></small>{{ ledger }}</b>
-          <b>XRPL Dev. Dashboard</b> <small><span class="text-warning">»</span> <small>Source: </small> <code><small><a href="https://github.com/WietseWind/rippled-ws-client-pool" target="_blank">rippled-ws-client-pool</a></small></code></small>
+          <b>XRPL Dev. Dashboard</b> <small><span class="text-warning">»</span> <small>Source: </small> <code><small><a href="https://github.com/WietseWind/rippled-ws-client-dashboard" target="_blank">rippled-ws-client-dashboard</a></small></code></small>
         </h3>
       </div>
       <div class="col-12 margin-bottom-10">
@@ -331,7 +331,10 @@
         <div><small>
           By <span class="text-muted"><a href="https://twitter.com/WietseWind" class="text-muted" target="_blank">@WietseWind</a></span>
           -
-          Source: <code><a href="https://github.com/WietseWind/rippled-ws-client-pool" class="text-muted" target="_blank">rippled-ws-client-pool</a></code> (Github)
+          Source:
+            <code><a href="https://github.com/WietseWind/rippled-ws-client-pool" class="text-muted" target="_blank">Connection Pool</a></code>
+            /
+            <code><a href="https://github.com/WietseWind/rippled-ws-client-dashboard/blob/master/src/components/Dashboard.vue" class="text-muted" target="_blank">Dashboard</a></code> (Github)
           -
           <code><a href="https://www.xrptipbot.com/u:WietseWind/n:twitter" class="text-muted" target="_blank">Donations 😇</a></code>
         </small></div>
