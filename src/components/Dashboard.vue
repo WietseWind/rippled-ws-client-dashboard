@@ -367,11 +367,11 @@ export default {
       connectedLedgerType: 'live',
       initialServers: {
         live: [
-          'rippled-dev.xrpayments.co',
-          's1.ripple.com',
-          's2.ripple.com'
+          'xrpl.ws',
+          's1.ripple.com'
         ],
         test: [
+          'testnet.xrpl-labs.com',
           's.altnet.rippletest.net:51233'
         ]
       },
@@ -388,7 +388,7 @@ export default {
       servers: [],
       accounts: [],
       connections: [],
-      addHostname: 'rippled.xrptipbot.com',
+      addHostname: 's2.ripple.com',
       newAccount: '',
       txSecretFocussed: false,
       ranking: {
