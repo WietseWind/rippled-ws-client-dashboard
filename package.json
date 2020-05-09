@@ -11,10 +11,10 @@
     "build": "node build/build.js"
   },
   "dependencies": {
-    "node-sass": "^4.7.2",
+    "node-sass": "^4.14.1",
     "rippled-ws-client": "0.0.6",
     "rippled-ws-client-pool": "0.0.5",
-    "rippled-ws-client-sign": "^0.1.4",
+    "rippled-ws-client-sign": "^0.3.0",
     "sass-loader": "^6.0.7",
     "vue": "^2.5.2",
     "vue-codemirror": "^4.0.5",
